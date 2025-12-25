@@ -1,0 +1,46 @@
+.admin-live-wrap {
+  max-width: 720px;
+  margin: 30px auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  padding: 24px 28px;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+.admin-live-wrap h2 {
+  margin: 0 0 18px;
+  font-weight: 700;
+}
+.admin-live-form .row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+.admin-live-form .row.two {
+  gap: 12px;
+  flex-direction: row;
+}
+.admin-live-form .row.two > div { flex: 1; display: flex; flex-direction: column; }
+.admin-live-form label { font-size: 13px; color: #444; margin-bottom: 6px; }
+.admin-live-form input, .admin-live-form select {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+}
+.admin-live-form .row.check { margin-top: 4px; }
+.preview {
+  margin-top: 10px;
+  width: 220px; height: auto; border-radius: 10px; border: 1px solid #eee;
+}
+.save-btn {
+  margin-top: 10px;
+  background: #1b211c;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
