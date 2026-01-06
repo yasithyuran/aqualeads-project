@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
+// Get API URL from environment or use production default
+const API_URL = process.env.REACT_APP_API_URL || 'https://aqualead-project.onrender.com';
+
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -13,7 +16,7 @@ const Login = () => {
   // Stable function for verifying token
   const verifyToken = useCallback(async (token) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify', {
+      const response = await fetch(`${API_URL}/api/auth/verify`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -56,7 +59,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
