@@ -16,7 +16,7 @@ export default function Scenarium() {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/ariums?mainCategory=scenarium');
+      const res = await fetch('http://https://aqualead-project.onrender.com/api/ariums?mainCategory=scenarium');
       const json = await res.json();
       const data = Array.isArray(json) ? json : [];
       setItems(data);
@@ -33,8 +33,8 @@ export default function Scenarium() {
 
   const getImageUrl = (image) => {
     if (!image) return '/placeholder.jpg';
-    if (image.filename) return `http://localhost:5000/uploads/ariums/${image.filename}`;
-    if (image.path) return `http://localhost:5000${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/ariums/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
     return '/placeholder.jpg';
   };
 

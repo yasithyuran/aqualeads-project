@@ -18,7 +18,7 @@ const Conservation = () => {
     setLoading(true); 
     setError(null);
     try {
-      const res = await fetch(`http://localhost:5000/api/articles/conservation?page=${page}&limit=6`);
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/articles/conservation?page=${page}&limit=6`);
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
       setArticles(data.success ? data.data : []);
@@ -35,10 +35,10 @@ const Conservation = () => {
   
   const getMainImage = (article) => {
     if (article.frontPic && article.frontPic.filename) {
-      return `http://localhost:5000/uploads/${article.frontPic.filename}`;
+      return `http://https://aqualead-project.onrender.com/uploads/${article.frontPic.filename}`;
     }
     if (article.frontPic && article.frontPic.path) {
-      return `http://localhost:5000${article.frontPic.path}`;
+      return `http://https://aqualead-project.onrender.com${article.frontPic.path}`;
     }
     return '/api/placeholder/400/300';
   };

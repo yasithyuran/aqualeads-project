@@ -21,7 +21,7 @@ export default function Filters() {
     if (subType !== 'all') params.append('subCategory', subType);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/accessories?${params}`);
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/accessories?${params}`);
       const json = await res.json();
       setItems(Array.isArray(json) ? json : []);
     } catch (error) {
@@ -34,7 +34,7 @@ export default function Filters() {
   useEffect(() => { load(); }, [subType]);
 
   const getImageUrl = (image) => {
-    return image?.path ? `http://localhost:5000${image.path}` : '/placeholder.jpg';
+    return image?.path ? `http://https://aqualead-project.onrender.com${image.path}` : '/placeholder.jpg';
   };
 
   return (

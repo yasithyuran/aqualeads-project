@@ -28,7 +28,7 @@ const ArticleDetail = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/articles/single/${id}`);
+      const response = await fetch(`http://https://aqualead-project.onrender.com/api/articles/single/${id}`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result = await response.json();
 
@@ -51,8 +51,8 @@ const ArticleDetail = () => {
 
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/400/300';
-    if (image.filename) return `http://localhost:5000/uploads/${image.filename}`;
-    if (image.path) return `http://localhost:5000${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
     return '/api/placeholder/400/300';
   };
 

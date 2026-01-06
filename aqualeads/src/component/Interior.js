@@ -25,7 +25,7 @@ const Interior = () => {
     setError(null);
     try {
       const params = new URLSearchParams({ page: page.toString(), limit: itemsPerPage.toString() });
-      const res = await fetch(`http://localhost:5000/api/interiors?${params}`);
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/interiors?${params}`);
       const result = await res.json();
 
       if (result.success) {
@@ -57,8 +57,8 @@ const Interior = () => {
 
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/600/400';
-    if (image.filename) return `http://localhost:5000/uploads/${image.filename}`;
-    if (image.path) return `http://localhost:5000${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
     return '/api/placeholder/600/400';
   };
 
