@@ -31,7 +31,7 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch('http://localhost:5000/api/auth/logout', {
+      await fetch('http://https://aqualead-project.onrender.com/api/auth/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

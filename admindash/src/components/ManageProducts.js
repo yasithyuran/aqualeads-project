@@ -43,7 +43,7 @@ const ManageProducts = () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      const res = await fetch('http://localhost:5000/api/products?limit=1000');
+      const res = await fetch('http://https://aqualead-project.onrender.com/api/products?limit=1000');
       const data = await res.json();
       
       if (data.success) {
@@ -78,8 +78,8 @@ const ManageProducts = () => {
   // Get image URL
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/100/100';
-    if (image.filename) return `http://localhost:5000/uploads/${image.filename}`;
-    if (image.path) return `http://localhost:5000${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 
@@ -235,7 +235,7 @@ const ManageProducts = () => {
         formData.append('captions', JSON.stringify(captions));
       }
 
-      const res = await fetch(`http://localhost:5000/api/products/${editingProduct._id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/products/${editingProduct._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -261,7 +261,7 @@ const ManageProducts = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this product?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/products/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setProducts(prev => prev.filter(p => p._id !== id));

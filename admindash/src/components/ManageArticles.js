@@ -31,7 +31,7 @@ const ManageArticles = () => {
     try {
       setIsLoading(true);
       setErrorMsg('');
-      const response = await fetch('http://localhost:5000/api/articles');
+      const response = await fetch('http://https://aqualead-project.onrender.com/api/articles');
       const data = await response.json();
 
       if (data.success && Array.isArray(data.articles)) {
@@ -73,17 +73,17 @@ const ManageArticles = () => {
   // Get image URL helper
   const getImageUrl = (article) => {
     if (article.frontPic && article.frontPic.filename) {
-      return `http://localhost:5000/uploads/${article.frontPic.filename}`;
+      return `http://https://aqualead-project.onrender.com/uploads/${article.frontPic.filename}`;
     }
     if (article.frontPic && article.frontPic.path) {
-      return `http://localhost:5000${article.frontPic.path}`;
+      return `http://https://aqualead-project.onrender.com${article.frontPic.path}`;
     }
     return '/api/placeholder/100/100';
   };
 
   const getAdditionalImageUrl = (image) => {
-    if (image.filename) return `http://localhost:5000/uploads/${image.filename}`;
-    if (image.path) return `http://localhost:5000${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 
@@ -215,7 +215,7 @@ const ManageArticles = () => {
         formData.append('captions', JSON.stringify(captions));
       }
 
-      const res = await fetch(`http://localhost:5000/api/articles/${editingArticle._id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/articles/${editingArticle._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -243,7 +243,7 @@ const ManageArticles = () => {
     if (!window.confirm('Are you sure you want to delete this article?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/articles/${id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/articles/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();

@@ -55,7 +55,7 @@ const ManageAriums = () => {
     try {
       setIsLoading(true);
       setErrorMsg('');
-      const response = await fetch('http://localhost:5000/api/ariums');
+      const response = await fetch('http://https://aqualead-project.onrender.com/api/ariums');
       const data = await response.json();
 
       if (Array.isArray(data)) {
@@ -97,8 +97,8 @@ const ManageAriums = () => {
 
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/100/100';
-    if (image.path) return `http://localhost:5000${image.path}`;
-    if (image.filename) return `http://localhost:5000/uploads/ariums/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/ariums/${image.filename}`;
     return '/api/placeholder/100/100';
   };
 
@@ -249,7 +249,7 @@ const ManageAriums = () => {
         formData.append('images', file);
       });
 
-      const res = await fetch(`http://localhost:5000/api/ariums/${editingArium._id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/ariums/${editingArium._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -276,7 +276,7 @@ const ManageAriums = () => {
     if (!window.confirm('Are you sure you want to delete this arium? All associated images will be deleted.')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/ariums/${id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/ariums/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();

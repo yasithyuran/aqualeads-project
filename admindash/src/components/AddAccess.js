@@ -115,7 +115,7 @@ export default function AddAccess() {
       
       fd.append('image', imageFile);
 
-      const res = await fetch('http://localhost:5000/api/accessories', {
+      const res = await fetch('http://https://aqualead-project.onrender.com/api/accessories', {
         method: 'POST',
         body: fd,
       });

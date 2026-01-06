@@ -70,7 +70,7 @@ const ManageAccessories = () => {
     try {
       setIsLoading(true);
       setErrorMsg('');
-      const response = await fetch('http://localhost:5000/api/accessories');
+      const response = await fetch('http://https://aqualead-project.onrender.com/api/accessories');
       const data = await response.json();
 
       if (Array.isArray(data)) {
@@ -114,8 +114,8 @@ const ManageAccessories = () => {
   // Get image URL
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/100/100';
-    if (image.path) return `http://localhost:5000${image.path}`;
-    if (image.filename) return `http://localhost:5000/uploads/accessories/${image.filename}`;
+    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
+    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/accessories/${image.filename}`;
     return '/api/placeholder/100/100';
   };
 
@@ -267,7 +267,7 @@ const ManageAccessories = () => {
         formData.append('image', newImage);
       }
 
-      const res = await fetch(`http://localhost:5000/api/accessories/${editingAccessory._id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/accessories/${editingAccessory._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -295,7 +295,7 @@ const ManageAccessories = () => {
     if (!window.confirm('Are you sure you want to delete this accessory?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/accessories/${id}`, {
+      const res = await fetch(`http://https://aqualead-project.onrender.com/api/accessories/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();
