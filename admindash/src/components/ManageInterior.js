@@ -25,7 +25,7 @@ const ManageInterior = () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      const res = await fetch('http://https://aqualead-project.onrender.com/api/interiors/all');
+      const res = await fetch('http://https://aqualeads-project.onrender.com/api/interiors/all');
       const data = await res.json();
       if (data.success) {
         const sorted = data.interiors.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -57,8 +57,8 @@ const ManageInterior = () => {
 
   // Get image URL
   const getImageUrl = (image) => {
-    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
+    if (image.filename) return `http://https://aqualeads-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualeads-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 
@@ -159,7 +159,7 @@ const ManageInterior = () => {
         formData.append('captions', JSON.stringify(captions));
       }
 
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/interiors/${editingInterior._id}`, {
+      const res = await fetch(`http://https://aqualeads-project.onrender.com/api/interiors/${editingInterior._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -185,7 +185,7 @@ const ManageInterior = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this interior?')) return;
     try {
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/interiors/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://https://aqualeads-project.onrender.com/api/interiors/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setInteriors(prev => prev.filter(i => i._id !== id));

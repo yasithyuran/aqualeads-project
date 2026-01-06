@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 // Get API URL from environment or use production default
-const API_URL = process.env.REACT_APP_API_URL || 'https://aqualead-project.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://aqualeads-project.onrender.com';
 
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });

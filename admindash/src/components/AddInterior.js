@@ -190,7 +190,7 @@ const AddInterior = () => {
 
       console.log('Sending request to backend...');
       
-      const response = await fetch('http://https://aqualead-project.onrender.com/api/interiors', {
+      const response = await fetch('http://https://aqualeads-project.onrender.com/api/interiors', {
         method: 'POST',
         body: submitData
         // Don't set Content-Type header - let browser set it for FormData

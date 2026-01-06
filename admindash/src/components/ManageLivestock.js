@@ -52,7 +52,7 @@ const ManageLivestock = () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      const res = await fetch('http://https://aqualead-project.onrender.com/api/livestock?limit=1000');
+      const res = await fetch('http://https://aqualeads-project.onrender.com/api/livestock?limit=1000');
       const data = await res.json();
       
       if (data.success) {
@@ -87,8 +87,8 @@ const ManageLivestock = () => {
   // Get image URL
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/100/100';
-    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
+    if (image.filename) return `http://https://aqualeads-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualeads-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 
@@ -230,7 +230,7 @@ const ManageLivestock = () => {
         formData.append('image', newImage);
       }
 
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/livestock/${editingItem._id}`, {
+      const res = await fetch(`http://https://aqualeads-project.onrender.com/api/livestock/${editingItem._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -256,7 +256,7 @@ const ManageLivestock = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this item?')) return;
     try {
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/livestock/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://https://aqualeads-project.onrender.com/api/livestock/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setItems(prev => prev.filter(i => i._id !== id));

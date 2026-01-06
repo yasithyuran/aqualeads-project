@@ -25,7 +25,7 @@ const ManageImEx = () => {
     try {
       setIsLoading(true);
       setErrorMsg('');
-      const response = await fetch('http://https://aqualead-project.onrender.com/api/imex/all');
+      const response = await fetch('http://https://aqualeads-project.onrender.com/api/imex/all');
       const data = await response.json();
 
       if (data.success && Array.isArray(data.posts)) {
@@ -66,8 +66,8 @@ const ManageImEx = () => {
 
   // Get image URL
   const getImageUrl = (image) => {
-    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
+    if (image.filename) return `http://https://aqualeads-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `http://https://aqualeads-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 
@@ -169,7 +169,7 @@ const ManageImEx = () => {
         formData.append('captions', JSON.stringify(captions));
       }
 
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/imex/${editingPost._id}`, {
+      const res = await fetch(`http://https://aqualeads-project.onrender.com/api/imex/${editingPost._id}`, {
         method: 'PUT',
         body: formData
       });
@@ -197,7 +197,7 @@ const ManageImEx = () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/imex/${id}`, {
+      const res = await fetch(`http://https://aqualeads-project.onrender.com/api/imex/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();
