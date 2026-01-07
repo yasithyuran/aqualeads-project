@@ -20,7 +20,7 @@ export default function Plants() {
     setLoading(true);
     const params = new URLSearchParams({ itemType: 'plant', page: p.toString(), limit: '12' });
     if (sub !== 'all') params.append('subType', sub);
-    const res = await fetch(`http://https://aqualead-project.onrender.com/api/livestock?${params}`);
+    const res = await fetch(`https://aqualeads-project.onrender.com/api/livestock?${params}`);
     const json = await res.json();
     if (json.success) {
       setItems(json.data);
@@ -33,7 +33,7 @@ export default function Plants() {
 
   useEffect(() => { load(page, subType); }, [page, subType]);
 
-  const imgSrc = (image) => image?.path ? `http://https://aqualead-project.onrender.com${image.path}` : '/placeholder.jpg';
+  const imgSrc = (image) => image?.path ? `https://aqualeads-project.onrender.com${image.path}` : '/placeholder.jpg';
 
   // Helper to check if item has pricing info
   const hasPrice = (item) => item.price !== undefined && item.price !== null;

@@ -46,7 +46,7 @@ const Products = () => {
         availability: filters.availability
       });
       
-      const response = await fetch(`http://https://aqualead-project.onrender.com/api/products?${params}`);
+      const response = await fetch(`https://aqualeads-project.onrender.com/api/products?${params}`);
       const result = await response.json();
       
       if (result.success) {
@@ -73,8 +73,8 @@ const Products = () => {
 
   const getImageUrl = (image) => {
     if (!image) return 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=300&h=200&fit=crop';
-    if (image.filename) return `http://https://aqualead-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `http://https://aqualead-project.onrender.com${image.path}`;
+    if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
+    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
     return 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=300&h=200&fit=crop';
   };
 

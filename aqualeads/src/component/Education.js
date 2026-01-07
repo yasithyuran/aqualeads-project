@@ -18,7 +18,7 @@ const Education = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://https://aqualead-project.onrender.com/api/articles/education?page=${page}&limit=6`);
+      const response = await fetch(`https://aqualeads-project.onrender.com/api/articles/education?page=${page}&limit=6`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result = await response.json();
 
@@ -44,10 +44,10 @@ const Education = () => {
 
   const getMainImage = (article) => {
     if (article.frontPic && article.frontPic.filename) {
-      return `http://https://aqualead-project.onrender.com/uploads/${article.frontPic.filename}`;
+      return `https://aqualeads-project.onrender.com/uploads/${article.frontPic.filename}`;
     }
     if (article.frontPic && article.frontPic.path) {
-      return `http://https://aqualead-project.onrender.com${article.frontPic.path}`;
+      return `https://aqualeads-project.onrender.com${article.frontPic.path}`;
     }
     return '/api/placeholder/400/300';
   };

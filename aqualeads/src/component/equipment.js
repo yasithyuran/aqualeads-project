@@ -22,7 +22,7 @@ export default function Equipments() {
     if (subType !== 'all') params.append('subCategory', subType);
 
     try {
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/accessories?${params}`);
+      const res = await fetch(`https://aqualeads-project.onrender.com/api/accessories?${params}`);
       const json = await res.json();
 
       if (Array.isArray(json)) setItems(json);
@@ -38,7 +38,7 @@ export default function Equipments() {
   useEffect(() => { load(); }, [subType]);
 
   const imgSrc = (image) =>
-    image?.path ? `http://https://aqualead-project.onrender.com${image.path}` : '/placeholder.jpg';
+    image?.path ? `https://aqualeads-project.onrender.com${image.path}` : '/placeholder.jpg';
 
   return (
     <div className="live-page">

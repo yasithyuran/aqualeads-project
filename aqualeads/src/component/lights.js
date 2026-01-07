@@ -10,7 +10,7 @@ export default function Lights() {
     const params = new URLSearchParams({ category: 'lights' });
 
     try {
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/accessories?${params}`);
+      const res = await fetch(`https://aqualeads-project.onrender.com/api/accessories?${params}`);
       const json = await res.json();
       setItems(Array.isArray(json) ? json : []);
     } catch (error) {
@@ -23,7 +23,7 @@ export default function Lights() {
   useEffect(() => { load(); }, []);
 
   const getImageUrl = (image) => {
-    return image?.path ? `http://https://aqualead-project.onrender.com${image.path}` : '/placeholder.jpg';
+    return image?.path ? `https://aqualeads-project.onrender.com${image.path}` : '/placeholder.jpg';
   };
 
   return (

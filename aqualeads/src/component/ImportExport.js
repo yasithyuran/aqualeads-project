@@ -20,7 +20,7 @@ const ImportExport = () => {
       const params = new URLSearchParams({ page: page.toString(), limit: '6' });
       if (type !== 'all') params.append('type', type);
 
-      const res = await fetch(`http://https://aqualead-project.onrender.com/api/imex?${params}`);
+      const res = await fetch(`https://aqualeads-project.onrender.com/api/imex?${params}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const result = await res.json();
 
@@ -43,7 +43,7 @@ const ImportExport = () => {
   const getMainImage = images => {
     if (!Array.isArray(images) || images.length === 0) return '/placeholder.jpg';
     const img = images[0] || {};
-    return img.filename ? `http://https://aqualead-project.onrender.com/uploads/${img.filename}` : '/placeholder.jpg';
+    return img.filename ? `https://aqualeads-project.onrender.com/uploads/${img.filename}` : '/placeholder.jpg';
   };
 
   const handleFilterChange = type => {
