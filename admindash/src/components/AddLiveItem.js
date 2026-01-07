@@ -112,7 +112,7 @@ export default function AddLiveItem() {
       
       fd.append('image', imageFile);
 
-      const res = await fetch('http://https://aqualeads-project.onrender.com/api/livestock', {
+      const res = await fetch('https://aqualeads-project.onrender.com/api/livestock', {
         method: 'POST',
         body: fd,
       });

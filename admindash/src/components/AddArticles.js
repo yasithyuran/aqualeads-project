@@ -82,7 +82,7 @@ function AddArticles() {
       const validUrls = urls.filter(url => url.link.trim() !== '');
       formDataToSend.append('urls', JSON.stringify(validUrls));
 
-      const res = await fetch('http://https://aqualeads-project.onrender.com/api/articles', {
+      const res = await fetch('https://aqualeads-project.onrender.com/api/articles', {
         method: 'POST',
         body: formDataToSend
       });

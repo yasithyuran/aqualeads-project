@@ -48,7 +48,7 @@ function AddImEx() {
       const captions = images.map(img => img.caption);
       formDataToSend.append('captions', JSON.stringify(captions));
 
-      const res = await fetch('http://https://aqualeads-project.onrender.com/api/imex', {
+      const res = await fetch('https://aqualeads-project.onrender.com/api/imex', {
         method: 'POST',
         body: formDataToSend
       });

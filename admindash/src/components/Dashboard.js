@@ -31,7 +31,7 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch('http://https://aqualeads-project.onrender.com/api/auth/logout', {
+      await fetch('https://aqualeads-project.onrender.com/api/auth/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -164,7 +164,7 @@ export default function AddAriums() {
         fd.append('images', file);
       });
 
-      const res = await fetch('http://https://aqualeads-project.onrender.com/api/ariums', {
+      const res = await fetch('https://aqualeads-project.onrender.com/api/ariums', {
         method: 'POST',
         body: fd,
       });
