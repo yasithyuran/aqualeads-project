@@ -3,20 +3,27 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const LiveItem = require('../models/LiveItem');
 
-// Multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `live-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
-  },
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// Cloudinary storage configuration
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'aqualeads-livestock',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit', quality: 'auto' }]
+  }
+});
+
 const upload = multer({
   storage,
   limits: { fileSize: 6 * 1024 * 1024 },
@@ -37,7 +44,10 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 
     const image = req.file
-      ? { filename: req.file.filename, path: `/uploads/${req.file.filename}` }
+      ? { 
+          filename: req.file.filename,
+          path: req.file.path  // Cloudinary full URL
+        }
       : undefined;
 
     // Build document object - only include fields that are provided
@@ -164,25 +174,32 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     // Handle image deletion
     if (deleteImage === 'true') {
       if (item.image?.filename) {
-        const fullPath = path.join(__dirname, '../uploads', item.image.filename);
-        fs.unlink(fullPath, (err) => {
-          if (err) console.error('Error deleting image:', err);
-        });
+        // Delete from Cloudinary
+        const publicId = item.image.filename.split('/').pop().split('.')[0];
+        try {
+          await cloudinary.uploader.destroy(`aqualeads-livestock/${publicId}`);
+        } catch (err) {
+          console.error('Error deleting from Cloudinary:', err);
+        }
       }
       item.image = undefined;
     }
 
     // Handle image update
     if (req.file) {
-      // Delete old image
+      // Delete old image from Cloudinary
       if (item.image?.filename) {
-        const fullPath = path.join(__dirname, '../uploads', item.image.filename);
-        fs.unlink(fullPath, () => {});
+        const publicId = item.image.filename.split('/').pop().split('.')[0];
+        try {
+          await cloudinary.uploader.destroy(`aqualeads-livestock/${publicId}`);
+        } catch (err) {
+          console.error('Error deleting old image from Cloudinary:', err);
+        }
       }
       // Add new image
       item.image = {
         filename: req.file.filename,
-        path: `/uploads/${req.file.filename}`
+        path: req.file.path  // Cloudinary full URL
       };
     }
 
@@ -192,10 +209,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     res.json({ success: true, data: savedItem });
   } catch (err) {
     console.error('Update live item error:', err);
-    if (req.file) {
-      const filePath = path.join(__dirname, '../uploads', req.file.filename);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -207,11 +220,15 @@ router.delete('/:id', async (req, res) => {
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
 
     if (item.image?.filename) {
-      const full = path.join(__dirname, '../uploads', item.image.filename);
-      fs.unlink(full, (err) => {
-        if (err) console.error('Error deleting image:', err);
-      });
+      // Delete from Cloudinary
+      const publicId = item.image.filename.split('/').pop().split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(`aqualeads-livestock/${publicId}`);
+      } catch (err) {
+        console.error('Error deleting from Cloudinary:', err);
+      }
     }
+    
     await LiveItem.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Deleted' });
   } catch (err) {

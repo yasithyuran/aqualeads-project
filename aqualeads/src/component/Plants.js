@@ -33,7 +33,7 @@ export default function Plants() {
 
   useEffect(() => { load(page, subType); }, [page, subType]);
 
-  const imgSrc = (image) => image?.path ? `https://aqualeads-project.onrender.com${image.path}` : '/placeholder.jpg';
+  const imgSrc = (image) => image?.path || '/placeholder.jpg';
 
   // Helper to check if item has pricing info
   const hasPrice = (item) => item.price !== undefined && item.price !== null;
