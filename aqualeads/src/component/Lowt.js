@@ -32,12 +32,10 @@ export default function Lowt() {
   };
 
   const getImageUrl = (image) => {
-    if (!image) return '/placeholder.jpg';
-    if (image.filename) return `https://aqualeads-project.onrender.com/uploads/ariums/${image.filename}`;
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
-    return '/placeholder.jpg';
-  };
-
+  if (!image) return '/placeholder.jpg';
+  if (image.path) return image.path;
+  return '/placeholder.jpg';
+};
   const nextImage = (itemId) => {
     const item = items.find(i => i._id === itemId);
     if (item?.images?.length > 1) {

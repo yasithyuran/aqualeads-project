@@ -50,11 +50,10 @@ const ArticleDetail = () => {
   };
 
   const getImageUrl = (image) => {
-    if (!image) return '/api/placeholder/400/300';
-    if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
-    return '/api/placeholder/400/300';
-  };
+  if (!image) return '/placeholder.jpg';
+  if (image.path) return image.path;
+  return '/placeholder.jpg';
+};
 
   const handleBack = () => {
     if (category) {
