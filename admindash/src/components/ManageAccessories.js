@@ -112,12 +112,13 @@ const ManageAccessories = () => {
   };
 
   // Get image URL
-  const getImageUrl = (image) => {
-    if (!image) return '/api/placeholder/100/100';
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
-    if (image.filename) return `https://aqualeads-project.onrender.com/uploads/accessories/${image.filename}`;
-    return '/api/placeholder/100/100';
-  };
+ // ✅ CORRECT:
+const getImageUrl = (image) => {
+  if (!image) return '/api/placeholder/100/100';
+  if (image.path) return image.path;  // Cloudinary URL - use directly!
+  if (image.filename) return `https://aqualeads-project.onrender.com/uploads/accessories/${image.filename}`;
+  return '/api/placeholder/100/100';
+};
 
   // Get category label
   const getCategoryLabel = (value) => {

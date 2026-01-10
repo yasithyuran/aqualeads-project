@@ -57,8 +57,8 @@ const ManageInterior = () => {
 
   // Get image URL
   const getImageUrl = (image) => {
+    if (image.path) return image.path;  // ✅ Cloudinary URL - use directly!
     if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 

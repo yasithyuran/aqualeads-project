@@ -72,18 +72,18 @@ const ManageArticles = () => {
 
   // Get image URL helper
   const getImageUrl = (article) => {
+    if (article.frontPic && article.frontPic.path) {
+      return article.frontPic.path;  // ✅ Cloudinary URL - use directly!
+    }
     if (article.frontPic && article.frontPic.filename) {
       return `https://aqualeads-project.onrender.com/uploads/${article.frontPic.filename}`;
-    }
-    if (article.frontPic && article.frontPic.path) {
-      return `https://aqualeads-project.onrender.com${article.frontPic.path}`;
     }
     return '/api/placeholder/100/100';
   };
 
   const getAdditionalImageUrl = (image) => {
+    if (image.path) return image.path;  // ✅ Cloudinary URL - use directly!
     if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
     return '/api/placeholder/100/100';
   };
 
