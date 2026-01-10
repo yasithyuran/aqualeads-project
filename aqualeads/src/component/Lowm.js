@@ -31,9 +31,13 @@ export default function Lowm() {
     }
   };
 
-  const getImageUrl = (image) => {
+ const getImageUrl = (image) => {
+  console.log('Arium image object:', image);  // ← ADD THIS
   if (!image) return '/placeholder.jpg';
-  if (image.path) return image.path;
+  if (image.path) {
+    console.log('Using path:', image.path);  // ← ADD THIS
+    return image.path;
+  }
   return '/placeholder.jpg';
 };
 
