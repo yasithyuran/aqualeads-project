@@ -55,12 +55,13 @@ const Interior = () => {
     return pages;
   };
 
-  const getImageUrl = (image) => {
-    if (!image) return '/api/placeholder/600/400';
-    if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
-    return '/api/placeholder/600/400';
-  };
+ // CORRECT:
+const getImageUrl = (image) => {
+  if (!image) return '/api/placeholder/600/400';
+  if (image.path) return image.path;  // ✅ Cloudinary URL - use directly!
+  if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
+  return '/api/placeholder/600/400';
+};
 
   const nextImage = (interiorId) => {
     const interior = interiors.find(i => i._id === interiorId);
