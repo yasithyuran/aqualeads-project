@@ -1,24 +1,32 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Accessory = require('../models/accessory');
 
 const router = express.Router();
 
-// Multer config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../uploads/accessories');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `accessory-${unique}${path.extname(file.originalname)}`);
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Cloudinary storage configuration
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'aqualeads-accessories',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit', quality: 'auto' }]
   }
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+const upload = multer({ 
+  storage, 
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
 
 /**
  * CREATE Accessory
@@ -34,7 +42,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     if (req.file) {
       data.image = {
         filename: req.file.filename,
-        path: `/uploads/accessories/${req.file.filename}`,
+        path: req.file.path,  // Cloudinary full URL
         mimetype: req.file.mimetype,
         size: req.file.size
       };
@@ -74,7 +82,6 @@ router.post('/', upload.single('image'), async (req, res) => {
     const accessory = await Accessory.create(data);
     res.status(201).json({ success: true, data: accessory });
   } catch (err) {
-    if (req.file) fs.unlink(req.file.path, () => {});
     console.error('POST error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
@@ -173,28 +180,38 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     }
 
     // Handle image deletion
-    if (deleteImage === 'true' && accessory.image && accessory.image.filename) {
-      const filePath = path.join(__dirname, '../uploads/accessories', accessory.image.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    if (deleteImage === 'true' && accessory.image?.path) {
+      const urlParts = accessory.image.path.split('/');
+      const fileWithExt = urlParts[urlParts.length - 1];
+      const publicId = `aqualeads-accessories/${fileWithExt.split('.')[0]}`;
+      
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error('Error deleting from Cloudinary:', err);
       }
       accessory.image = undefined;
     }
 
     // Handle new image upload
     if (req.file) {
-      // Delete old image if exists
-      if (accessory.image && accessory.image.filename) {
-        const oldFilePath = path.join(__dirname, '../uploads/accessories', accessory.image.filename);
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
+      // Delete old image from Cloudinary
+      if (accessory.image?.path) {
+        const urlParts = accessory.image.path.split('/');
+        const fileWithExt = urlParts[urlParts.length - 1];
+        const publicId = `aqualeads-accessories/${fileWithExt.split('.')[0]}`;
+        
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error('Error deleting old image from Cloudinary:', err);
         }
       }
 
       // Set new image
       accessory.image = {
         filename: req.file.filename,
-        path: `/uploads/accessories/${req.file.filename}`,
+        path: req.file.path,  // Cloudinary full URL
         mimetype: req.file.mimetype,
         size: req.file.size
       };
@@ -206,10 +223,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     res.json({ success: true, data: updatedAccessory });
   } catch (err) {
     console.error('PUT /api/accessories/:id failed:', err);
-    if (req.file) {
-      const filePath = path.join(__dirname, '../uploads/accessories', req.file.filename);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -224,11 +237,16 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Accessory not found' });
     }
 
-    // Delete associated image
-    if (accessory.image && accessory.image.filename) {
-      const filePath = path.join(__dirname, '../uploads/accessories', accessory.image.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    // Delete associated image from Cloudinary
+    if (accessory.image?.path) {
+      const urlParts = accessory.image.path.split('/');
+      const fileWithExt = urlParts[urlParts.length - 1];
+      const publicId = `aqualeads-accessories/${fileWithExt.split('.')[0]}`;
+      
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error('Error deleting from Cloudinary:', err);
       }
     }
 

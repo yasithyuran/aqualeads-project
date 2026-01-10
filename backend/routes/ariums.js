@@ -1,24 +1,32 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Arium = require('../models/arium');
 
 const router = express.Router();
 
-// Multer config for multiple images
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../uploads/ariums');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `arium-${unique}${path.extname(file.originalname)}`);
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Cloudinary storage configuration for multiple images
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'aqualeads-ariums',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit', quality: 'auto' }]
   }
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+const upload = multer({ 
+  storage, 
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
 
 /**
  * CREATE Arium
@@ -28,12 +36,6 @@ router.post('/', upload.array('images', 20), async (req, res) => {
     const data = { ...req.body };
 
     if (!data.title || !data.mainCategory) {
-      // Clean up uploaded files if validation fails
-      if (req.files) {
-        req.files.forEach(file => {
-          fs.unlink(file.path, () => {});
-        });
-      }
       return res.status(400).json({ 
         success: false, 
         message: 'Title and main category are required' 
@@ -42,9 +44,6 @@ router.post('/', upload.array('images', 20), async (req, res) => {
 
     // Validate category hierarchy
     if (data.mainCategory === 'aquarium' && !data.subCategory) {
-      if (req.files) {
-        req.files.forEach(file => fs.unlink(file.path, () => {}));
-      }
       return res.status(400).json({ 
         success: false, 
         message: 'Aquarium type (Marine/Freshwater) is required' 
@@ -52,9 +51,6 @@ router.post('/', upload.array('images', 20), async (req, res) => {
     }
 
     if (data.subCategory === 'freshwater' && !data.subSubCategory) {
-      if (req.files) {
-        req.files.forEach(file => fs.unlink(file.path, () => {}));
-      }
       return res.status(400).json({ 
         success: false, 
         message: 'Freshwater type is required' 
@@ -65,7 +61,7 @@ router.post('/', upload.array('images', 20), async (req, res) => {
     if (req.files && req.files.length > 0) {
       data.images = req.files.map(file => ({
         filename: file.filename,
-        path: `/uploads/ariums/${file.filename}`,
+        path: file.path,  // Cloudinary full URL
         mimetype: file.mimetype,
         size: file.size
       }));
@@ -79,12 +75,6 @@ router.post('/', upload.array('images', 20), async (req, res) => {
     const arium = await Arium.create(data);
     res.status(201).json({ success: true, data: arium });
   } catch (err) {
-    // Clean up uploaded files on error
-    if (req.files) {
-      req.files.forEach(file => {
-        fs.unlink(file.path, () => {});
-      });
-    }
     console.error('POST /api/ariums error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
@@ -139,10 +129,6 @@ router.put('/:id', upload.array('images', 20), async (req, res) => {
     const { title, mainCategory, subCategory, subSubCategory, subSubSubCategory, type, description, imagesToDelete } = req.body;
 
     if (!title || !mainCategory) {
-      // Clean up uploaded files if validation fails
-      if (req.files) {
-        req.files.forEach(file => fs.unlink(file.path, () => {}));
-      }
       return res.status(400).json({ 
         success: false, 
         message: 'Title and main category are required' 
@@ -151,9 +137,6 @@ router.put('/:id', upload.array('images', 20), async (req, res) => {
 
     const arium = await Arium.findById(req.params.id);
     if (!arium) {
-      if (req.files) {
-        req.files.forEach(file => fs.unlink(file.path, () => {}));
-      }
       return res.status(404).json({ success: false, message: 'Arium not found' });
     }
 
@@ -176,15 +159,19 @@ router.put('/:id', upload.array('images', 20), async (req, res) => {
       }
 
       if (Array.isArray(idsToDelete) && idsToDelete.length > 0) {
-        // Filter out images to delete and remove from filesystem
+        // Filter out images to delete and remove from Cloudinary
         arium.images = arium.images.filter(img => {
           if (idsToDelete.includes(img._id.toString())) {
-            // Delete file from filesystem
-            const filePath = path.join(__dirname, '../uploads/ariums', img.filename);
-            if (fs.existsSync(filePath)) {
-              fs.unlinkSync(filePath);
-              console.log('Deleted image:', img.filename);
-            }
+            // Delete from Cloudinary
+            const urlParts = img.path.split('/');
+            const fileWithExt = urlParts[urlParts.length - 1];
+            const publicId = `aqualeads-ariums/${fileWithExt.split('.')[0]}`;
+            
+            cloudinary.uploader.destroy(publicId).catch(err => {
+              console.error('Error deleting from Cloudinary:', err);
+            });
+            
+            console.log('Deleted image:', img.filename);
             return false; // Remove from array
           }
           return true; // Keep in array
@@ -196,7 +183,7 @@ router.put('/:id', upload.array('images', 20), async (req, res) => {
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => ({
         filename: file.filename,
-        path: `/uploads/ariums/${file.filename}`,
+        path: file.path,  // Cloudinary full URL
         mimetype: file.mimetype,
         size: file.size
       }));
@@ -205,12 +192,6 @@ router.put('/:id', upload.array('images', 20), async (req, res) => {
 
     // Validate at least one image remains
     if (!arium.images || arium.images.length === 0) {
-      if (req.files) {
-        req.files.forEach(file => {
-          const filePath = path.join(__dirname, '../uploads/ariums', file.filename);
-          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        });
-      }
       return res.status(400).json({ 
         success: false, 
         message: 'At least one image is required' 
@@ -223,13 +204,6 @@ router.put('/:id', upload.array('images', 20), async (req, res) => {
     res.json({ success: true, data: updatedArium });
   } catch (err) {
     console.error('PUT /api/ariums/:id failed:', err);
-    // Clean up any newly uploaded files on error
-    if (req.files) {
-      req.files.forEach(file => {
-        const filePath = path.join(__dirname, '../uploads/ariums', file.filename);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
-    }
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -244,14 +218,18 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Arium not found' });
     }
 
-    // Delete all associated images
+    // Delete all associated images from Cloudinary
     if (arium.images && arium.images.length > 0) {
       arium.images.forEach(img => {
-        const filePath = path.join(__dirname, '../uploads/ariums', img.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log('Deleted image:', img.filename);
-        }
+        const urlParts = img.path.split('/');
+        const fileWithExt = urlParts[urlParts.length - 1];
+        const publicId = `aqualeads-ariums/${fileWithExt.split('.')[0]}`;
+        
+        cloudinary.uploader.destroy(publicId).catch(err => {
+          console.error('Error deleting from Cloudinary:', err);
+        });
+        
+        console.log('Deleted image:', img.filename);
       });
     }
 

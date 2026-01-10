@@ -1,26 +1,25 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Product = require('../models/Product');
 
 const router = express.Router();
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// Multer configuration for product images
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = 'product-' + uniqueSuffix + path.extname(file.originalname);
-    cb(null, filename);
+// Cloudinary storage configuration for product images
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'aqualeads-products',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit', quality: 'auto' }]
   }
 });
 
@@ -32,7 +31,7 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = allowedTypes.test(file.originalname.toLowerCase().split('.').pop());
     const mimetype = allowedTypes.test(file.mimetype);
     
     if (extname && mimetype) {
@@ -78,10 +77,10 @@ router.post('/', upload.array('images', 5), async (req, res) => {
       }
     }
 
-    // Process uploaded images
+    // Process uploaded images - now with Cloudinary URLs
     const images = req.files ? req.files.map((file, index) => ({
       filename: file.filename,
-      path: `/uploads/${file.filename}`,
+      path: file.path,  // Cloudinary full URL
       caption: captions[index] || ''
     })) : [];
 
@@ -123,16 +122,6 @@ router.post('/', upload.array('images', 5), async (req, res) => {
 
   } catch (error) {
     console.error('Error adding product:', error);
-    
-    // Clean up uploaded files if creation failed
-    if (req.files) {
-      req.files.forEach(file => {
-        const filePath = path.join(uploadsDir, file.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-    }
 
     res.status(500).json({ 
       success: false, 
@@ -239,7 +228,6 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
     // Update or remove availability
     if (availability !== undefined) {
       if (availability === '' || availability === null || availability === 'null') {
-        // Remove availability if empty string or null
         product.set('availability', undefined, { strict: false });
         product.availability = undefined;
         console.log('Removing availability field');
@@ -252,7 +240,6 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
     // Update or remove price
     if (price !== undefined) {
       if (price === '' || price === null || price === 'null') {
-        // Remove price and currency if empty
         product.set('price', undefined, { strict: false });
         product.set('currency', undefined, { strict: false });
         product.price = undefined;
@@ -270,11 +257,15 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
       const idsToDelete = JSON.parse(imagesToDelete);
       product.images = product.images.filter(img => {
         if (idsToDelete.includes(img._id.toString())) {
-          // Delete file from disk
-          const filePath = path.join(uploadsDir, img.filename);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
+          // Delete from Cloudinary
+          const urlParts = img.path.split('/');
+          const fileWithExt = urlParts[urlParts.length - 1];
+          const publicId = `aqualeads-products/${fileWithExt.split('.')[0]}`;
+          
+          cloudinary.uploader.destroy(publicId).catch(err => {
+            console.error('Error deleting from Cloudinary:', err);
+          });
+          
           return false;
         }
         return true;
@@ -294,7 +285,7 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
 
       const newImages = req.files.map((file, index) => ({
         filename: file.filename,
-        path: `/uploads/${file.filename}`,
+        path: file.path,  // Cloudinary full URL
         caption: captions[index] || ''
       }));
 
@@ -303,7 +294,6 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
 
     product.updatedAt = new Date();
     
-    // Save with validation disabled for undefined fields
     await product.save({ validateBeforeSave: true });
 
     console.log('Product updated successfully');
@@ -316,12 +306,6 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
 
   } catch (error) {
     console.error('Error updating product:', error);
-    if (req.files) {
-      req.files.forEach(file => {
-        const filePath = path.join(uploadsDir, file.filename);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
-    }
     res.status(500).json({ 
       success: false, 
       message: error.message || 'Failed to update product' 
@@ -341,12 +325,15 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    // Delete associated image files
+    // Delete associated image files from Cloudinary
     product.images.forEach(image => {
-      const filePath = path.join(uploadsDir, image.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      const urlParts = image.path.split('/');
+      const fileWithExt = urlParts[urlParts.length - 1];
+      const publicId = `aqualeads-products/${fileWithExt.split('.')[0]}`;
+      
+      cloudinary.uploader.destroy(publicId).catch(err => {
+        console.error('Error deleting from Cloudinary:', err);
+      });
     });
 
     await Product.findByIdAndDelete(req.params.id);

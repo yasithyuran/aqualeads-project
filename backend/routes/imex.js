@@ -1,20 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const ImEx = require('../models/ImEx');
 
-// Multer setup for uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `imex-${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Cloudinary storage configuration
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'aqualeads-imex',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }]
   }
 });
 
@@ -40,7 +44,7 @@ router.post('/', upload.array('images', 10), async (req, res) => {
     req.files?.forEach((file, i) => {
       images.push({
         filename: file.filename,
-        path: `/uploads/${file.filename}`,
+        path: file.path,  // Cloudinary full URL
         caption: captionsArray[i] || ''
       });
     });
@@ -56,7 +60,6 @@ router.post('/', upload.array('images', 10), async (req, res) => {
     res.status(201).json({ success: true, message: 'Post created', data: newPost });
   } catch (err) {
     console.error(err);
-    if (req.files) req.files.forEach(f => fs.unlink(f.path, () => {}));
     res.status(500).json({ success: false, message: 'Failed to create post', error: err.message });
   }
 });
@@ -142,11 +145,15 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
       const idsToDelete = JSON.parse(imagesToDelete);
       post.images = post.images.filter(img => {
         if (idsToDelete.includes(img._id.toString())) {
-          // Delete file from disk
-          const filePath = path.join(__dirname, '../uploads', img.filename);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
+          // Delete from Cloudinary
+          const urlParts = img.path.split('/');
+          const fileWithExt = urlParts[urlParts.length - 1];
+          const publicId = `aqualeads-imex/${fileWithExt.split('.')[0]}`;
+          
+          cloudinary.uploader.destroy(publicId).catch(err => {
+            console.error('Error deleting from Cloudinary:', err);
+          });
+          
           return false;
         }
         return true;
@@ -159,7 +166,7 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
       req.files.forEach((file, i) => {
         post.images.push({
           filename: file.filename,
-          path: `/uploads/${file.filename}`,
+          path: file.path,  // Cloudinary full URL
           caption: captionsArray[i] || ''
         });
       });
@@ -171,12 +178,6 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
     res.json({ success: true, data: updatedPost });
   } catch (err) {
     console.error(err);
-    if (req.files) {
-      req.files.forEach(file => {
-        const filePath = path.join(__dirname, '../uploads', file.filename);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
-    }
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -187,13 +188,16 @@ router.delete('/:id', async (req, res) => {
     const post = await ImEx.findById(req.params.id);
     if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
     
-    // Delete associated images
+    // Delete associated images from Cloudinary
     if (post.images && post.images.length > 0) {
       post.images.forEach(img => {
-        const filePath = path.join(__dirname, '../uploads', img.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        const urlParts = img.path.split('/');
+        const fileWithExt = urlParts[urlParts.length - 1];
+        const publicId = `aqualeads-imex/${fileWithExt.split('.')[0]}`;
+        
+        cloudinary.uploader.destroy(publicId).catch(err => {
+          console.error('Error deleting from Cloudinary:', err);
+        });
       });
     }
     

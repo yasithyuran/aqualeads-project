@@ -1,20 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Article = require('../models/Article');
 
-// Multer setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Cloudinary storage configuration
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'aqualeads-articles',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }]
   }
 });
 
@@ -37,14 +41,22 @@ router.post('/', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'imag
     let frontPic = null;
     if (req.files && req.files.frontPic && req.files.frontPic[0]) {
       const file = req.files.frontPic[0];
-      frontPic = { filename: file.filename, path: file.path, caption: frontPicCaption || '' };
+      frontPic = { 
+        filename: file.filename, 
+        path: file.path,  // Cloudinary full URL
+        caption: frontPicCaption || '' 
+      };
     }
 
     const images = [];
     if (req.files && req.files.images) {
       const captionsArray = captions ? JSON.parse(captions) : [];
       req.files.images.forEach((file, i) => {
-        images.push({ filename: file.filename, path: file.path, caption: captionsArray[i] || '' });
+        images.push({ 
+          filename: file.filename, 
+          path: file.path,  // Cloudinary full URL
+          caption: captionsArray[i] || '' 
+        });
       });
     }
 
@@ -59,10 +71,6 @@ router.post('/', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'imag
     res.status(201).json({ success: true, data: saved });
   } catch (err) {
     console.error(err);
-    if (req.files) {
-      if (req.files.frontPic) req.files.frontPic.forEach(f => fs.unlink(f.path, () => {}));
-      if (req.files.images) req.files.images.forEach(f => fs.unlink(f.path, () => {}));
-    }
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -134,9 +142,13 @@ router.put('/:id', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'im
 
     // Handle front pic deletion
     if (deleteFrontPic === 'true') {
-      if (article.frontPic && article.frontPic.path) {
-        fs.unlink(article.frontPic.path, (err) => {
-          if (err) console.error('Error deleting front pic:', err);
+      if (article.frontPic?.path) {
+        const urlParts = article.frontPic.path.split('/');
+        const fileWithExt = urlParts[urlParts.length - 1];
+        const publicId = `aqualeads-articles/${fileWithExt.split('.')[0]}`;
+        
+        cloudinary.uploader.destroy(publicId).catch(err => {
+          console.error('Error deleting front pic from Cloudinary:', err);
         });
       }
       article.frontPic = null;
@@ -144,15 +156,21 @@ router.put('/:id', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'im
 
     // Update front pic if new one uploaded
     if (req.files && req.files.frontPic && req.files.frontPic[0]) {
-      // Delete old front pic
-      if (article.frontPic && article.frontPic.path) {
-        fs.unlink(article.frontPic.path, () => {});
+      // Delete old front pic from Cloudinary
+      if (article.frontPic?.path) {
+        const urlParts = article.frontPic.path.split('/');
+        const fileWithExt = urlParts[urlParts.length - 1];
+        const publicId = `aqualeads-articles/${fileWithExt.split('.')[0]}`;
+        
+        cloudinary.uploader.destroy(publicId).catch(err => {
+          console.error('Error deleting old front pic from Cloudinary:', err);
+        });
       }
       
       const file = req.files.frontPic[0];
       article.frontPic = { 
         filename: file.filename, 
-        path: file.path, 
+        path: file.path,  // Cloudinary full URL
         caption: frontPicCaption || '' 
       };
     }
@@ -162,10 +180,14 @@ router.put('/:id', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'im
       const idsToDelete = JSON.parse(imagesToDelete);
       article.images = article.images.filter(img => {
         if (idsToDelete.includes(img._id.toString())) {
-          // Delete file from disk
+          // Delete from Cloudinary
           if (img.path) {
-            fs.unlink(img.path, (err) => {
-              if (err) console.error('Error deleting image:', err);
+            const urlParts = img.path.split('/');
+            const fileWithExt = urlParts[urlParts.length - 1];
+            const publicId = `aqualeads-articles/${fileWithExt.split('.')[0]}`;
+            
+            cloudinary.uploader.destroy(publicId).catch(err => {
+              console.error('Error deleting image from Cloudinary:', err);
             });
           }
           return false;
@@ -180,7 +202,7 @@ router.put('/:id', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'im
       req.files.images.forEach((file, i) => {
         article.images.push({ 
           filename: file.filename, 
-          path: file.path, 
+          path: file.path,  // Cloudinary full URL
           caption: captionsArray[i] || '' 
         });
       });
@@ -192,10 +214,6 @@ router.put('/:id', upload.fields([{ name: 'frontPic', maxCount: 1 }, { name: 'im
     res.json({ success: true, data: updatedArticle });
   } catch (err) {
     console.error(err);
-    if (req.files) {
-      if (req.files.frontPic) req.files.frontPic.forEach(f => fs.unlink(f.path, () => {}));
-      if (req.files.images) req.files.images.forEach(f => fs.unlink(f.path, () => {}));
-    }
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -206,19 +224,27 @@ router.delete('/:id', async (req, res) => {
     const article = await Article.findById(req.params.id);
     if (!article) return res.status(404).json({ success: false, message: 'Article not found' });
     
-    // Delete front pic
-    if (article.frontPic && article.frontPic.path) {
-      fs.unlink(article.frontPic.path, (err) => {
-        if (err) console.error('Error deleting front pic:', err);
+    // Delete front pic from Cloudinary
+    if (article.frontPic?.path) {
+      const urlParts = article.frontPic.path.split('/');
+      const fileWithExt = urlParts[urlParts.length - 1];
+      const publicId = `aqualeads-articles/${fileWithExt.split('.')[0]}`;
+      
+      cloudinary.uploader.destroy(publicId).catch(err => {
+        console.error('Error deleting front pic from Cloudinary:', err);
       });
     }
     
-    // Delete all additional images
+    // Delete all additional images from Cloudinary
     if (article.images && article.images.length > 0) {
       article.images.forEach(img => {
         if (img.path) {
-          fs.unlink(img.path, (err) => {
-            if (err) console.error('Error deleting image:', err);
+          const urlParts = img.path.split('/');
+          const fileWithExt = urlParts[urlParts.length - 1];
+          const publicId = `aqualeads-articles/${fileWithExt.split('.')[0]}`;
+          
+          cloudinary.uploader.destroy(publicId).catch(err => {
+            console.error('Error deleting image from Cloudinary:', err);
           });
         }
       });
