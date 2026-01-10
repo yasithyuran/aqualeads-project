@@ -42,15 +42,15 @@ const Education = () => {
     navigate(`/education/${articleId}`);
   };
 
-  const getMainImage = (article) => {
-    if (article.frontPic && article.frontPic.filename) {
-      return `https://aqualeads-project.onrender.com/uploads/${article.frontPic.filename}`;
-    }
-    if (article.frontPic && article.frontPic.path) {
-      return `https://aqualeads-project.onrender.com${article.frontPic.path}`;
-    }
-    return '/api/placeholder/400/300';
-  };
+ const getMainImage = (article) => {
+  if (article.frontPic && article.frontPic.path) {
+    return article.frontPic.path;  // Cloudinary URL - use directly!
+  }
+  if (article.frontPic && article.frontPic.filename) {
+    return `https://aqualeads-project.onrender.com/uploads/${article.frontPic.filename}`;
+  }
+  return '/api/placeholder/400/300';
+};
 
   const generatePaginationNumbers = () => {
     const pages = [];

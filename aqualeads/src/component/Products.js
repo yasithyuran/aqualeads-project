@@ -71,12 +71,12 @@ const Products = () => {
     }
   };
 
-  const getImageUrl = (image) => {
-    if (!image) return 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=300&h=200&fit=crop';
-    if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
-    return 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=300&h=200&fit=crop';
-  };
+ const getImageUrl = (image) => {
+  if (!image) return 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=300&h=200&fit=crop';
+  if (image.path) return image.path;  // Cloudinary URL - use directly!
+  if (image.filename) return `https://aqualeads-project.onrender.com/uploads/${image.filename}`;
+  return 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=300&h=200&fit=crop';
+};
 
   const nextImage = (productId, e) => {
     e.stopPropagation();

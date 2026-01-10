@@ -40,11 +40,13 @@ const ImportExport = () => {
     }
   };
 
-  const getMainImage = images => {
-    if (!Array.isArray(images) || images.length === 0) return '/placeholder.jpg';
-    const img = images[0] || {};
-    return img.filename ? `https://aqualeads-project.onrender.com/uploads/${img.filename}` : '/placeholder.jpg';
-  };
+ const getMainImage = images => {
+  if (!Array.isArray(images) || images.length === 0) return '/placeholder.jpg';
+  const img = images[0] || {};
+  if (img.path) return img.path;  // Cloudinary URL
+  if (img.filename) return `https://aqualeads-project.onrender.com/uploads/${img.filename}`;
+  return '/placeholder.jpg';
+};
 
   const handleFilterChange = type => {
     setFilterType(type);
