@@ -97,7 +97,7 @@ const ManageAriums = () => {
 
   const getImageUrl = (image) => {
     if (!image) return '/api/placeholder/100/100';
-    if (image.path) return `https://aqualeads-project.onrender.com${image.path}`;
+    if (image.path) return image.path;  // ✅ Cloudinary URL - use directly
     if (image.filename) return `https://aqualeads-project.onrender.com/uploads/ariums/${image.filename}`;
     return '/api/placeholder/100/100';
   };
