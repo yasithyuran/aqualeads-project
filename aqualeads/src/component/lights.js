@@ -23,7 +23,9 @@ export default function Lights() {
   useEffect(() => { load(); }, []);
 
   const getImageUrl = (image) => {
-    return image?.path ? `https://aqualeads-project.onrender.com${image.path}` : '/placeholder.jpg';
+    if (!image) return '/placeholder.jpg';
+    if (image.path) return image.path;  // ✅ Cloudinary URL - use directly!
+    return '/placeholder.jpg';
   };
 
   return (

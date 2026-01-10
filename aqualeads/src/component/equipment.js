@@ -37,8 +37,11 @@ export default function Equipments() {
 
   useEffect(() => { load(); }, [subType]);
 
-  const imgSrc = (image) =>
-    image?.path ? `https://aqualeads-project.onrender.com${image.path}` : '/placeholder.jpg';
+  const imgSrc = (image) => {
+    if (!image) return '/placeholder.jpg';
+    if (image.path) return image.path;  // ✅ Cloudinary URL - use directly!
+    return '/placeholder.jpg';
+  };
 
   return (
     <div className="live-page">
